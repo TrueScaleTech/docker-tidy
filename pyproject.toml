@@ -27,7 +27,7 @@ classifiers = [
 ]
 dependencies = [
     # The oldest release the test suite has been run against.
-    "textual>=8.2",
+    "textual>=8.2.8",
 ]
 
 [project.scripts]
