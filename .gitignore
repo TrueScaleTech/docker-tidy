@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.tox/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Anything captured from a real Docker host describes that host: image names,
+# container names, volume names. Real captures must never be committed. The
+# synthetic ones that ship with the tests live in /tests/fixtures/ and are not ignored.
+# Anchored to the repository root so that a rule never swallows a directory of the
+# package itself.
+/captures/
+/data/
+*.local.*
+.env
+.env.*
+!.env.example
+
+# OS and editors
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
