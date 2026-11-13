@@ -162,6 +162,11 @@ mind before pasting its output into a public issue.
 Use it on Docker hosts you own or are responsible for. It removes things, and removing a
 volume cannot be undone.
 
+## Not affiliated
+
+docker-tidy is an independent project. It is not affiliated with, endorsed by or sponsored
+by Docker, Inc. "Docker" is a trademark of Docker, Inc.
+
 ## Roadmap
 
 - [ ] Build cache: list it and clean it
