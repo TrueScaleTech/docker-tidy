@@ -19,7 +19,6 @@ class DockerError(Exception):
 class Runner(Protocol):
     def run(self, args: Sequence[str]) -> str:
         """Run `docker <args>` and return what it printed on standard output."""
-        ...
 
 
 class SubprocessRunner:
