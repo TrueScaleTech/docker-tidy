@@ -1,3 +1,4 @@
+import subprocess
 import sys
 
 import pytest
@@ -39,6 +40,16 @@ def test_arguments_are_never_interpreted_by_a_shell() -> None:
     runner = SubprocessRunner(executable=sys.executable)
     out = runner.run(["-c", "import sys; print(sys.argv[1])", "a b; echo hacked && $(x)"])
     assert out.strip() == "a b; echo hacked && $(x)"
+
+
+def test_a_command_that_cannot_start_is_a_clear_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    def refuse(*_args: object, **_kwargs: object) -> object:
+        raise PermissionError("access denied")
+
+    monkeypatch.setattr(subprocess, "run", refuse)
+    runner = SubprocessRunner(executable=sys.executable)
+    with pytest.raises(DockerError, match="Could not start"):
+        runner.run(["version"])
 
 
 def test_daemon_noise_is_stripped_from_errors() -> None:
