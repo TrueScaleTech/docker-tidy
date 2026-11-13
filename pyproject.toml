@@ -78,7 +78,9 @@ warn_unreachable = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+# The integration tests need a real Docker daemon, so they only run when asked for
+# with `pytest -m integration`.
+addopts = "-q -m 'not integration'"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = [

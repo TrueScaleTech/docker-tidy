@@ -51,3 +51,29 @@ jobs:
 
       - name: Tests
         run: pytest --cov=docker_tidy --cov-report=term-missing
+
+  # The one job that talks to a real Docker daemon. The tests create resources named
+  # docker-tidy-test-*, clean them up with the program itself, and check that a running
+  # container, its volume and its network are left alone.
+  integration:
+    name: Real Docker (ubuntu)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Docker version
+        run: docker version
+
+      - name: Integration tests
+        run: pytest -m integration
