@@ -92,6 +92,42 @@ async def test_in_use_rows_are_listed_but_marked_with_a_dash() -> None:
         assert names["old-job"] == "[x]"
 
 
+async def test_the_arrow_keys_move_the_row_cursor_from_the_start() -> None:
+    app, _ = make_app()
+    async with app.run_test() as pilot:
+        await settle(app, pilot)
+        assert table(app, Kind.CONTAINER).has_focus
+        await pilot.press("down")
+        assert table(app, Kind.CONTAINER).cursor_row == 1
+        await pilot.press("up")
+        assert table(app, Kind.CONTAINER).cursor_row == 0
+
+
+async def test_left_and_right_change_tab_and_wrap_around() -> None:
+    app, _ = make_app()
+    async with app.run_test() as pilot:
+        await settle(app, pilot)
+        tabs = app.query_one("#tabs", TabbedContent)
+        await pilot.press("right")
+        assert tabs.active == "tab-image"
+        assert table(app, Kind.IMAGE).has_focus
+        await pilot.press("right", "right", "right")
+        assert tabs.active == "tab-container"
+        await pilot.press("left")
+        assert tabs.active == "tab-network"
+
+
+async def test_a_row_can_be_ticked_by_arrowing_to_it_and_pressing_space() -> None:
+    app, _ = make_app()
+    async with app.run_test() as pilot:
+        await settle(app, pilot)
+        await pilot.press("right", "down", "down", "space")  # images tab, third row
+        boxes = [cells(app, Kind.IMAGE, i)[0] for i in range(3)]
+        assert boxes == ["[ ]", "[x]", "[x]"]  # example/app, the untagged one, alpine
+        assert app.selection is not None
+        assert "alpine:3.19" in {r.name for r in app.selection.ticked()}
+
+
 # --- selecting ----------------------------------------------------------------------
 
 

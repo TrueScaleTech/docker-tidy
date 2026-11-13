@@ -25,6 +25,15 @@ from docker_tidy.tui.screens import ConfirmScreen, ResultScreen
 from docker_tidy.viewmodel import COLUMNS, Selection, row_cells, tab_title
 
 
+class ResourceTable(DataTable[Text]):
+    """A table whose left and right keys change tab, since a row cursor has no use for them."""
+
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding("left", "app.prev_tab", "Previous tab", show=False),
+        Binding("right", "app.next_tab", "Next tab", show=False),
+    ]
+
+
 class DockerTidyApp(App[None]):
     TITLE = "docker-tidy"
     SUB_TITLE = __version__
@@ -38,6 +47,8 @@ class DockerTidyApp(App[None]):
 
     BINDINGS: ClassVar[list[BindingType]] = [
         Binding("space", "toggle_row", "Select"),
+        Binding("left", "prev_tab", "Prev tab"),
+        Binding("right", "next_tab", "Next tab"),
         Binding("a", "tick_all", "Select all"),
         Binding("n", "untick_all", "Select none"),
         Binding("c", "clean", "Clean..."),
@@ -65,7 +76,7 @@ class DockerTidyApp(App[None]):
         with TabbedContent(id="tabs"):
             for kind in KIND_ORDER:
                 with TabPane(KIND_TITLES[kind], id=f"tab-{kind.value}"):
-                    yield DataTable[Text](id=f"table-{kind.value}", cursor_type="row")
+                    yield ResourceTable(id=f"table-{kind.value}", cursor_type="row")
         yield Static("", id="detail")
         yield Footer()
 
@@ -144,6 +155,7 @@ class DockerTidyApp(App[None]):
                 table.move_cursor(row=min(keep, len(self._rows[kind]) - 1))
             tabs.get_tab(f"tab-{kind.value}").label = Text(tab_title(kind, inventory))
         self._update_summary()
+        self._table(self._active_kind()).focus()
         self._show_detail()
 
     # -- the detail line ---------------------------------------------------------------
@@ -162,7 +174,20 @@ class DockerTidyApp(App[None]):
 
     @on(TabbedContent.TabActivated)
     def _tab_changed(self) -> None:
+        # Arrow keys should move the row cursor, not the tab bar.
+        self._table(self._active_kind()).focus()
         self._show_detail()
+
+    def _step_tab(self, step: int) -> None:
+        index = KIND_ORDER.index(self._active_kind())
+        target = KIND_ORDER[(index + step) % len(KIND_ORDER)]
+        self.query_one("#tabs", TabbedContent).active = f"tab-{target.value}"
+
+    def action_next_tab(self) -> None:
+        self._step_tab(1)
+
+    def action_prev_tab(self) -> None:
+        self._step_tab(-1)
 
     # -- selecting ---------------------------------------------------------------------
 
