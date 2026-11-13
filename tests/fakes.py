@@ -122,7 +122,8 @@ class FakeDocker:
     def _df(self) -> str:
         links = {v.name: sum(v.name in c.volumes for c in self.containers) for v in self.volumes}
         rows = "".join(
-            f"{v.name:<40}{links[v.name]:<10}{human(self.volume_sizes.get(v.name))}\n"
+            # Docker pads the name column to the longest name, never less than a gap.
+            f"{v.name}  {links[v.name]:<8}{human(self.volume_sizes.get(v.name))}\n"
             for v in self.volumes
         )
         return (
