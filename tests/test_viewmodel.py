@@ -37,6 +37,11 @@ def test_volumes_and_networks_are_never_ticked_at_the_start() -> None:
     assert not any(r.kind in (Kind.VOLUME, Kind.NETWORK) for r in sel.ticked())
 
 
+def test_it_exposes_the_inventory_it_was_given() -> None:
+    inv = _inventory()
+    assert Selection(inv).inventory is inv
+
+
 def test_toggle_ticks_and_unticks() -> None:
     inv = _inventory()
     sel = Selection(inv)

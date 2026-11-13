@@ -9,7 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from typing import TextIO
 
@@ -202,18 +202,32 @@ def _cmd_clean(args: argparse.Namespace, runner: Runner, out: TextIO) -> int:
 # --- entry point ---------------------------------------------------------------------
 
 
+def _default_screen(runner: Runner) -> int:  # pragma: no cover - needs a real terminal
+    if not (sys.stdin.isatty() and sys.stdout.isatty()):
+        print(
+            "docker-tidy: the interactive screen needs a terminal. "
+            "Use 'docker-tidy report' in scripts.",
+            file=sys.stderr,
+        )
+        return 2
+    from docker_tidy.tui.app import run  # imported late: report and clean never need Textual
+
+    return run(runner)
+
+
 def main(
     argv: Sequence[str] | None = None,
     runner: Runner | None = None,
     out: TextIO | None = None,
+    screen: Callable[[Runner], int] = _default_screen,
 ) -> int:
+    """Run the command line. `runner`, `out` and `screen` exist so tests can replace them."""
     parser = build_parser()
     args = parser.parse_args(argv)
     out = out or sys.stdout
     runner = runner or SubprocessRunner()
     if args.command is None:
-        parser.print_help(out)
-        return 0
+        return screen(runner)
     try:
         if args.command == "report":
             return _cmd_report(args, runner, out)

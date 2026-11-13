@@ -20,9 +20,24 @@ def run(*argv: str, docker: FakeDocker | None = None) -> tuple[int, str]:
 # --- basics -------------------------------------------------------------------------
 
 
-def test_no_command_prints_help() -> None:
-    code, text = run()
-    assert code == 0
+def test_no_command_opens_the_screen_with_the_runner() -> None:
+    docker = FakeDocker()
+    seen: list[object] = []
+
+    def screen(runner: object) -> int:
+        seen.append(runner)
+        return 0
+
+    assert main([], runner=docker, out=io.StringIO(), screen=screen) == 0
+    assert seen == [docker]
+    assert docker.calls == []  # opening the screen is not the CLI's business to read docker
+
+
+def test_help_lists_the_commands(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as stop:
+        main(["--help"])
+    assert stop.value.code == 0
+    text = capsys.readouterr().out
     assert "report" in text
     assert "clean" in text
 
